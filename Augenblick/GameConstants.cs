@@ -11,16 +11,29 @@ namespace Augenblick
     {
         #region Colors
 
-        public static Color BackgroundColor = Color.Black;
-        public static Color GridColor = Color.CornflowerBlue;
-        public static Color EmptyColor = Color.Transparent;
-        public static Color StartColor = Color.Green;
-        public static Color EndColor = Color.Red;
-        public static Color WallColor = Color.Blue;
+        public static readonly Color BackgroundColor = Color.Black;
+        public static readonly Color GridColor = Color.CornflowerBlue;
+        public static readonly Color EmptyColor = Color.Transparent;
+        public static readonly Color StartColor = Color.Green;
+        public static readonly Color EndColor = Color.Red;
+        public static readonly Color WallColor = Color.Blue;
+        public static readonly Color SelectionColor = Color.Green;
 
         #endregion
 
-        public static float GridThickness = 1.0f;
-        public static float SafePercentage = 0.05f;
+        #region difficulties
+
+        public static readonly LevelParameters Easy = new LevelParameters(5, false, 10.0f, 10.0f); // ajat tilapäiset
+        public static readonly LevelParameters Normal = new LevelParameters(7, true, 10.0f, 10.0f);
+        public static readonly LevelParameters Hard = new LevelParameters(9, true, 10.0f, 10.0f);
+        public static readonly LevelParameters Impossible = new LevelParameters(15, true, 10.0f, 10.0f);
+
+        #endregion
+
+        public const float GridThickness = 1.0f;
+        public const float SafePercentage = 0.05f;
+
+        public const float SelectionThickness = 1.0f;
+        public const float SelectionEndWidthPercentage = 0.20f;
     }
 }

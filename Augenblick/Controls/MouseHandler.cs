@@ -19,6 +19,8 @@ namespace Augenblick
         public static event MouseEventHandler LeftMouseClicked;
         public static event MouseEventHandler RightMouseClicked;
 
+        public static bool MouseButtonsEnabled { get; set; }
+
         public static void Update(GameTime time)
         {
             MouseState state = Mouse.GetState();
@@ -26,11 +28,19 @@ namespace Augenblick
 
             if (state.LeftButton == ButtonState.Pressed)
                 if (LeftMouseClicked != null)
-                    LeftMouseClicked(pos);
+                    if (MouseButtonsEnabled)
+                        LeftMouseClicked(pos);
 
             if (state.RightButton == ButtonState.Pressed)
                 if (RightMouseClicked != null)
-                    RightMouseClicked(pos);
+                    if (MouseButtonsEnabled)
+                        RightMouseClicked(pos);
+        }
+
+        public static void ClearMouseEvents()
+        {
+            LeftMouseClicked = null;
+            RightMouseClicked = null;
         }
     }
 }

@@ -1,23 +1,35 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System.Collections.Generic;
+using Microsoft.Xna.Framework.Content;
+using System;
+using System.Timers;
 
 namespace Augenblick
 {
-
-
     /// <summary>
     /// This is the main type for your game.
     /// </summary>
     public class Augenblick : Game
     {
+        public static Augenblick GameInstance;
         public static GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
 
         private MazeGrid GameGrid;
+        private bool rotationsEnabled;
+        private float inspectionTime;
+        private float solveTime;
+        private Difficulty currentDifficulty;
+
+        private Timer timer;
+
+        public Texture2D title;
 
         public Augenblick()
         {
+            GameInstance = this;
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
         }
@@ -44,6 +56,8 @@ namespace Augenblick
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
+            title = Content.Load<Texture2D>("title");
+
             Begin();
             // TODO: use this.Content to load your game content here
         }
@@ -59,29 +73,208 @@ namespace Augenblick
 
         private void Begin()
         {
-            GameGrid = MazeGrid.Generate(6);
+            SetWindowSize(720, 576); // 720, 576
+            IsMouseVisible = true;
+            MouseHandler.MouseButtonsEnabled = true;
+
+            CreateTitleScreen();
+        }
+
+        #region game flow
+
+        private void CreateTitleScreen()
+        {
+            CreateMaze(Difficulty.Normal);
+        }
+
+        private void CreateMaze(Difficulty diff)
+        {
+            LevelParameters prefs;
+            switch (diff)
+            {
+                case Difficulty.Easy:
+                    prefs = GameConstants.Easy;
+                    break;
+                case Difficulty.Normal:
+                    prefs = GameConstants.Normal;
+                    break;
+                case Difficulty.Hard:
+                    prefs = GameConstants.Hard;
+                    break;
+                case Difficulty.Impossible:
+                    prefs = GameConstants.Impossible;
+                    break;
+                default:
+                    prefs = GameConstants.Normal;
+                    break;
+            }
+
+            Layer.ClearAllLayers();
+            MouseHandler.ClearMouseEvents();
+
+            GameGrid = MazeGrid.Generate(prefs.SideLength);
             GameGrid.GridVisible = true;
-            // GameGrid.Grid[1, 2].CellColor = Color.White;
+
             Layer.AddToDraw(GameGrid);
             Layer.AddToUpdate(GameGrid);
 
-            IsMouseVisible = true;
+            rotationsEnabled = prefs.RotationsEnabled;
+            inspectionTime = prefs.InspectionTime * 1000; // timerille millisekunteina
+            solveTime = prefs.SolveTime * 1000;
+            currentDifficulty = diff;
 
+            timer = new Timer(inspectionTime);
+
+            StartInspection();
+        }
+
+        private void StartInspection()
+        {
+
+            Timer controlDelay = new Timer(200);
+            controlDelay.Elapsed += delegate
+            {
+                MouseHandler.LeftMouseClicked += delegate
+                {
+                    timer.Stop();
+                    StartSolve();
+                };
+
+                controlDelay.Stop();
+            };
+            controlDelay.Start();
+
+
+            timer = new Timer();
+            timer.Interval = inspectionTime;
+            timer.Elapsed += delegate
+            {
+                timer.Stop();
+                StartSolve();
+            };
+            timer.Start();
+        }
+
+        private void StartSolve()
+        {
+            MouseHandler.ClearMouseEvents();
+
+            if (rotationsEnabled)
+            {
+                switch (RandomGen.NextInt(0, 4))
+                {
+                    case 0:
+                        // do nothing
+                        break;
+                    case 1:
+                        GameGrid.Rotate(Rotation.QuarterClockwise);
+                        break;
+                    case 2:
+                        GameGrid.Rotate(Rotation.QuarterCounterClockwise);
+                        break;
+                    case 3:
+                        GameGrid.Rotate(Rotation.Half);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            GameGrid.AddStartPosition();
+            GameGrid.WallsVisible = false;
+
+            Timer controlDelay = new Timer(200);
+            controlDelay.Elapsed += delegate
+            {
+                SetSolveControls();
+                controlDelay.Stop();
+            };
+            controlDelay.Start();
+
+            timer = new Timer();
+            timer.Interval = solveTime;
+            timer.Elapsed += delegate
+            {
+                timer.Stop();
+                SolveFinished(GameGrid.VerifySelectedRoute());
+            };
+            timer.Start();
+        }
+
+        private void SolveFinished(Tuple<bool, Point> result)
+        {
+            timer.Stop();
+            MouseHandler.ClearMouseEvents();
+
+            GameGrid.WallsVisible = true;
+
+            timer = new Timer();
+            timer.Interval = 1000.0f;
+            timer.Elapsed += delegate
+            {
+                MouseHandler.LeftMouseClicked +=
+                    delegate
+                    {
+                        CreateMaze(currentDifficulty);
+                    };
+                timer.Stop();
+            };
+            timer.Start();
+
+
+        }
+
+        #endregion
+
+
+        private void SetSolveControls()
+        {
             MouseHandler.LeftMouseClicked += delegate(Vector2 pos)
             {
-                GameGrid.GetCellByCoordinates(pos).CellColor = Color.Blue;
+                Point? cell = GameGrid.GetPointByCoordinates(pos);
+                if (cell != null)
+                {
+                    Point last = GameGrid.SelectedRoute[GameGrid.SelectedRoute.Count - 1];
+
+                    if (cell.Value.X != last.X && cell.Value.Y != last.Y) // ei saa laittaa viistosti
+                        return;
+
+                    // bestest code ever :D
+                    if (last.X < cell.Value.X)
+                        for (int i = last.X; i <= cell.Value.X; i++)
+                        {
+                            GameGrid.SelectedRoute.Add(new Point(i, cell.Value.Y));
+                        }
+                    if (last.X > cell.Value.X)
+                        for (int i = last.X; i >= cell.Value.X; i--)
+                        {
+                            GameGrid.SelectedRoute.Add(new Point(i, cell.Value.Y));
+                        }
+                    if (last.Y < cell.Value.Y)
+                        for (int i = last.Y; i <= cell.Value.Y; i++)
+                        {
+                            GameGrid.SelectedRoute.Add(new Point(cell.Value.X, i));
+                        }
+                    if (last.Y > cell.Value.Y)
+                        for (int i = last.Y; i >= cell.Value.Y; i--)
+                        {
+                            GameGrid.SelectedRoute.Add(new Point(cell.Value.X, i));
+                        }
+
+                    if (GameGrid.Grid[cell.Value.X, cell.Value.Y].Type == CellType.End)
+                        SolveFinished(GameGrid.VerifySelectedRoute());
+                }
             };
             MouseHandler.RightMouseClicked += delegate(Vector2 pos)
             {
-                GameGrid.Rotate(Rotation.QuarterClockwise);
+                Point? cell = GameGrid.GetPointByCoordinates(pos);
+                if (cell != null)
+                {
+                    int index = GameGrid.SelectedRoute.IndexOf((Point)cell);
+                    if (index != -1 && index != 0)
+                        GameGrid.SelectedRoute.RemoveRange(index, GameGrid.SelectedRoute.Count - index);
+                }
             };
-            KeyboardHandler.ListenedKeys.Add(Keys.Space);
-            KeyboardHandler.KeyPressed += delegate(Keys k)
-            {
-                GameGrid.Rotate(Rotation.QuarterClockwise);
-            };
-
-            SetWindowSize(720, 576);
         }
 
         /// <summary>
