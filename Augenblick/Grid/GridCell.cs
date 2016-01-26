@@ -58,13 +58,13 @@ namespace Augenblick
             this.Type = type;
         }
 
-        public void Draw(SpriteBatch batch, Vector2 topLeft, Vector2 bottomRight, bool wallsVisible)
+        public void Draw(SpriteBatch batch, Vector2 topLeft, Vector2 size, bool wallsVisible, float angle)
         {
             if (CellColor != Color.Transparent)
             {
                 if (Type == CellType.Wall && !wallsVisible) 
                     return;
-                Primitives2D.FillRectangle(batch, topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y, CellColor);
+                Primitives2D.FillRectangle(batch, topLeft, size, CellColor, angle);
             }
         }
 

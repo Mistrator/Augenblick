@@ -5,6 +5,7 @@ using System.Text;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using C3.XNA;
+using System.Timers;
 
 namespace Augenblick
 {
@@ -27,6 +28,19 @@ namespace Augenblick
             get { return Grid.GetLength(0); }
         }
 
+        /// <summary>
+        /// Ruudukon kulma asteina. 
+        /// + vastapäivään, - myötäpäivään.
+        /// </summary>
+        public float GridRotation { get; private set; }
+
+        private float deltaRot;
+        private float targetRot;
+        private Rotation rotType;
+        private bool rotating;
+
+        public event Action RotationFinished;
+
         public MazeGrid(int sideLength)
         {
             Grid = new GridCell[sideLength, sideLength];
@@ -38,7 +52,20 @@ namespace Augenblick
 
         public void Update(GameTime time)
         {
+            if (rotating)
+            {
+                GridRotation += deltaRot;
 
+                if ((targetRot < 0 && GridRotation <= targetRot) || (targetRot > 0 && GridRotation >= targetRot))
+                {
+                    rotating = false;
+                    deltaRot = 0;
+                    targetRot = 0;
+                    FinishRotation();
+                    if (RotationFinished != null)
+                        RotationFinished();
+                }
+            }
         }
 
         public void Draw(SpriteBatch batch)
@@ -60,11 +87,15 @@ namespace Augenblick
             float bottomRightX = widthCenter + safeHeight / 2;
             float bottomRightY = heightCenter + safeHeight / 2;
 
+            Vector2 pivot = new Vector2(topLeftX + ((bottomRightX - topLeftX) / 2), topLeftY + ((bottomRightY - topLeftY) / 2));
+
             for (int i = 0; i < SideLength; i++)
             {
                 for (int j = 0; j < SideLength; j++)
                 {
-                    Grid[i, j].Draw(batch, new Vector2(topLeftX + i * cellSideLength, topLeftY + j * cellSideLength), new Vector2(topLeftX + (i + 1) * cellSideLength, topLeftY + (j + 1) * cellSideLength), WallsVisible);
+                    Grid[i, j].Draw(batch, MathHelper.RotatePoint(topLeftX + i * cellSideLength, topLeftY + j * cellSideLength, GridRotation, pivot), 
+                        new Vector2(cellSideLength, cellSideLength), 
+                        WallsVisible, MathHelper.DegreesToRadians(GridRotation));
                 }
             }
 
@@ -82,15 +113,46 @@ namespace Augenblick
             {
                 for (int i = 0; i <= SideLength; i++)
                 {
-                    Primitives2D.DrawLine(batch, new Vector2(topLeftX, topLeftY + i * cellSideLength), new Vector2(bottomRightX, topLeftY + i * cellSideLength), GameConstants.GridColor, GameConstants.GridThickness);
-                    Primitives2D.DrawLine(batch, new Vector2(topLeftX + i * cellSideLength, topLeftY), new Vector2(topLeftX + i * cellSideLength, bottomRightY), GameConstants.GridColor, GameConstants.GridThickness);
+                    Primitives2D.DrawLine(batch, MathHelper.RotatePoint(topLeftX, topLeftY + i * cellSideLength, GridRotation, pivot), 
+                        MathHelper.RotatePoint(bottomRightX, topLeftY + i * cellSideLength, GridRotation, pivot), 
+                        GameConstants.GridColor, GameConstants.GridThickness);
+
+                    Primitives2D.DrawLine(batch, MathHelper.RotatePoint(topLeftX + i * cellSideLength, topLeftY, GridRotation, pivot), 
+                        MathHelper.RotatePoint(topLeftX + i * cellSideLength, bottomRightY, GridRotation, pivot), 
+                        GameConstants.GridColor, GameConstants.GridThickness);
                 }
             }
         }
 
-        public void Rotate(Rotation rot)
+        public void Rotate(Rotation rot, float time)
         {
+            rotating = true;
+            rotType = rot;
+
             switch (rot)
+            {
+                case Rotation.QuarterClockwise:
+                    deltaRot = 90.0f / (time * 60.0f);
+                    targetRot = 90.0f;
+                    break;
+                case Rotation.QuarterCounterClockwise:
+                    deltaRot = -90.0f / (time * 60.0f);
+                    targetRot = -90.0f;
+                    break;
+                case Rotation.Half:
+                    deltaRot = 180.0f / (time * 60.0f);
+                    targetRot = 180.0f;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void FinishRotation()
+        {
+            GridRotation = 0;
+
+            switch (rotType)
             {
                 case Rotation.QuarterClockwise:
                     Transpose(Grid);
@@ -138,7 +200,6 @@ namespace Augenblick
                             Grid[x, SideLength - i - 1] = tmp;
                         }
                     }
-
                     break;
             }
         }

@@ -25,9 +25,9 @@ namespace Augenblick
         #region difficulties
 
         public static readonly LevelParameters Easy = new LevelParameters(5, false, 10.0f, 10.0f); // ajat tilapäiset
-        public static readonly LevelParameters Normal = new LevelParameters(7, true, 10.0f, 15.0f);
-        public static readonly LevelParameters Hard = new LevelParameters(9, true, 10.0f, 10.0f);
-        public static readonly LevelParameters Impossible = new LevelParameters(15, true, 10.0f, 10.0f);
+        public static readonly LevelParameters Normal = new LevelParameters(5, true, 15.0f, 15.0f);
+        public static readonly LevelParameters Hard = new LevelParameters(7, true, 10.0f, 10.0f);
+        public static readonly LevelParameters Impossible = new LevelParameters(11, true, 10.0f, 10.0f);
 
         #endregion
 
@@ -38,5 +38,8 @@ namespace Augenblick
         public const float SelectionEndWidthPercentage = 0.20f;
 
         public const float BlinkingSpeed = 0.5f; // ruudun vilkkumisnopeus epäonnistuttaessa
+        public const float RotationTime = 1.0f;
+
+        public const float MinimumInspectionTimePercentage = 0.05f;
     }
 }

@@ -27,9 +27,9 @@ namespace Augenblick
         /// </summary>
         /// <param name="degrees">Kulma asteina</param>
         /// <returns></returns>
-        public static double DegreesToRadians(double degrees)
+        public static float DegreesToRadians(double degrees)
         {
-            return Math.PI * degrees / 180.0;
+            return (float)(Math.PI * degrees / 180.0);
         }
 
         /// <summary>
@@ -37,9 +37,9 @@ namespace Augenblick
         /// </summary>
         /// <param name="radians">Kulma radiaaneina</param>
         /// <returns></returns>
-        public static double RadiansToDegrees(double radians)
+        public static float RadiansToDegrees(double radians)
         {
-            return radians * (180.0 / Math.PI);
+            return (float)(radians * (180.0 / Math.PI));
         }
 
         /// <summary>
@@ -66,6 +66,30 @@ namespace Augenblick
         public static bool AreApproximatelyEqual(float first, float second, float inaccuracy)
         {
             return Math.Abs(first - second) < inaccuracy;
+        }
+
+        /// <summary>
+        /// Kiertää pistettä (x, y) toisen pisteen ympäri.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="angleDeg">Kulma asteina</param>
+        /// <param name="pivot">Piste, jonka ympäri kierretään.</param>
+        /// <returns></returns>
+        public static Vector2 RotatePoint(float x, float y, float angleDeg, Vector2 pivot)
+        {
+            float a = MathHelper.DegreesToRadians(angleDeg);
+
+            float s = (float)Math.Sin(a);
+            float c = (float)Math.Cos(a);
+
+            float tX = x - pivot.X;
+            float tY = y - pivot.Y;
+
+            float rotX = tX * c - tY * s;
+            float rotY = tX * s + tY * c;
+
+            return new Vector2(rotX + pivot.X, rotY + pivot.Y);
         }
     }
 }

@@ -80,7 +80,7 @@ namespace Augenblick
 
         private void CreateTitleScreen()
         {
-            CreateMaze(Difficulty.Easy);
+            CreateMaze(Difficulty.Normal);
         }
 
         private void CreateMaze(Difficulty diff)
@@ -126,14 +126,13 @@ namespace Augenblick
 
         private void StartInspection()
         {
-
-            Timer controlDelay = new Timer(200);
+            Timer controlDelay = new Timer(inspectionTime * GameConstants.MinimumInspectionTimePercentage);
             controlDelay.Elapsed += delegate
             {
                 MouseHandler.LeftMouseClicked += delegate
                 {
                     timer.Stop();
-                    StartSolve();
+                    RotateGrid();
                 };
 
                 controlDelay.Stop();
@@ -146,38 +145,47 @@ namespace Augenblick
             timer.Elapsed += delegate
             {
                 timer.Stop();
-                StartSolve();
+                RotateGrid();
             };
             timer.Start();
         }
 
-        private void StartSolve()
+        private void RotateGrid()
         {
             MouseHandler.ClearMouseEvents();
+            GameGrid.WallsVisible = false;
 
             if (rotationsEnabled)
             {
                 switch (RandomGen.NextInt(0, 4))
                 {
                     case 0:
-                        // do nothing
+                        StartSolve();
                         break;
                     case 1:
-                        GameGrid.Rotate(Rotation.QuarterClockwise);
+                        GameGrid.Rotate(Rotation.QuarterClockwise, GameConstants.RotationTime);
+                        GameGrid.RotationFinished += StartSolve;
                         break;
                     case 2:
-                        GameGrid.Rotate(Rotation.QuarterCounterClockwise);
+                        GameGrid.Rotate(Rotation.QuarterCounterClockwise, GameConstants.RotationTime);
+                        GameGrid.RotationFinished += StartSolve;
                         break;
                     case 3:
-                        GameGrid.Rotate(Rotation.Half);
+                        GameGrid.Rotate(Rotation.Half, GameConstants.RotationTime);
+                        GameGrid.RotationFinished += StartSolve;
                         break;
                     default:
                         break;
                 }
             }
+            else StartSolve();
 
+
+        }
+
+        private void StartSolve()
+        {
             GameGrid.AddStartPosition();
-            GameGrid.WallsVisible = false;
 
             Timer controlDelay = new Timer(200);
             controlDelay.Elapsed += delegate
