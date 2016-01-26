@@ -5,6 +5,7 @@ using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using C3.XNA;
+using System.Timers;
 
 namespace Augenblick
 {
@@ -48,6 +49,10 @@ namespace Augenblick
             }
         }
 
+        private Color ownColor;
+        private Color blinkingColor;
+        private Timer blinkingTimer;
+
         public GridCell(CellType type)
         {
             this.Type = type;
@@ -71,6 +76,27 @@ namespace Augenblick
         public void SetCellColor(Color c)
         {
             CellColor = c;
+        }
+
+        public void Blink(Color c, float interval)
+        {
+            ownColor = this.CellColor;
+            blinkingColor = c;
+
+            blinkingTimer = new Timer(interval * 1000);
+            blinkingTimer.Elapsed += delegate
+            {
+                if (this.CellColor == ownColor)
+                    this.CellColor = blinkingColor;
+                else this.CellColor = ownColor;
+            };
+            blinkingTimer.Start();
+        }
+
+        public void StopBlinking()
+        {
+            blinkingTimer.Stop();
+            this.CellColor = this.ownColor;
         }
     }
 }

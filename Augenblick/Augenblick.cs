@@ -25,8 +25,6 @@ namespace Augenblick
 
         private Timer timer;
 
-        public Texture2D title;
-
         public Augenblick()
         {
             GameInstance = this;
@@ -56,8 +54,6 @@ namespace Augenblick
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            title = Content.Load<Texture2D>("title");
-
             Begin();
             // TODO: use this.Content to load your game content here
         }
@@ -84,7 +80,7 @@ namespace Augenblick
 
         private void CreateTitleScreen()
         {
-            CreateMaze(Difficulty.Normal);
+            CreateMaze(Difficulty.Easy);
         }
 
         private void CreateMaze(Difficulty diff)
@@ -221,6 +217,19 @@ namespace Augenblick
             };
             timer.Start();
 
+            if (result.Item1 == false) // meni väärin
+                SolveFailed(result);
+            else
+                SolveSucceeded(result);
+        }
+
+        private void SolveFailed(Tuple<bool, Point> result)
+        {
+            GameGrid.Grid[result.Item2.X, result.Item2.Y].Blink(GameConstants.BlinkingColor, GameConstants.BlinkingSpeed);
+        }
+
+        private void SolveSucceeded(Tuple<bool, Point> result)
+        {
 
         }
 

@@ -18,13 +18,14 @@ namespace Augenblick
         public static readonly Color EndColor = Color.Red;
         public static readonly Color WallColor = Color.Blue;
         public static readonly Color SelectionColor = Color.Green;
+        public static readonly Color BlinkingColor = Color.OrangeRed;
 
         #endregion
 
         #region difficulties
 
         public static readonly LevelParameters Easy = new LevelParameters(5, false, 10.0f, 10.0f); // ajat tilapäiset
-        public static readonly LevelParameters Normal = new LevelParameters(7, true, 10.0f, 10.0f);
+        public static readonly LevelParameters Normal = new LevelParameters(7, true, 10.0f, 15.0f);
         public static readonly LevelParameters Hard = new LevelParameters(9, true, 10.0f, 10.0f);
         public static readonly LevelParameters Impossible = new LevelParameters(15, true, 10.0f, 10.0f);
 
@@ -35,5 +36,7 @@ namespace Augenblick
 
         public const float SelectionThickness = 1.0f;
         public const float SelectionEndWidthPercentage = 0.20f;
+
+        public const float BlinkingSpeed = 0.5f; // ruudun vilkkumisnopeus epäonnistuttaessa
     }
 }

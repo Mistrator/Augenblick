@@ -36,6 +36,11 @@ namespace Augenblick
             SelectedRoute = new List<Point>();
         }
 
+        public void Update(GameTime time)
+        {
+
+        }
+
         public void Draw(SpriteBatch batch)
         {
             if (!IsVisible) return;
@@ -81,11 +86,6 @@ namespace Augenblick
                     Primitives2D.DrawLine(batch, new Vector2(topLeftX + i * cellSideLength, topLeftY), new Vector2(topLeftX + i * cellSideLength, bottomRightY), GameConstants.GridColor, GameConstants.GridThickness);
                 }
             }
-        }
-
-        public void Update(GameTime gameTime)
-        {
-
         }
 
         public void Rotate(Rotation rot)
